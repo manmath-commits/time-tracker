@@ -4,5 +4,6 @@ contextBridge.exposeInMainWorld('api', {
   idle: () => ipcRenderer.invoke('idle'),
   activeWindow: () => ipcRenderer.invoke('active-window'),
   screenshot: (label) => ipcRenderer.invoke('screenshot', label),
+  lastClick: () => ipcRenderer.invoke('last-click'),
   openFolder: () => ipcRenderer.invoke('open-folder'),
 });

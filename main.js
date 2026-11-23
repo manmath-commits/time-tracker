@@ -11,6 +11,26 @@ const isWayland = process.platform === 'linux' &&
 let activeWin = null;
 try { activeWin = require('active-win'); } catch (e) { activeWin = null; }
 
+// Global click / key listener. Used so the timer only resumes from idle on a real click or key press,
+// not on mouse movement. Not used on Wayland (it cannot see native Wayland windows); there we fall back to any input.
+let uio = null, clickHook = isWayland ? 'unavailable (Wayland)' : 'not started';
+let lastClick = 0, hookEvents = 0;
+function startClickHook() {
+  if (isWayland) return;
+  try {
+    uio = require('uiohook-napi').uIOhook;
+    const mark = () => { lastClick = Date.now(); hookEvents++; };
+    uio.on('keydown', mark);
+    uio.on('mousedown', mark);
+    uio.start();
+    clickHook = 'active';
+  } catch (e) {
+    uio = null; clickHook = 'unavailable (' + String(e && e.message || e).slice(0, 80) + ')';
+  }
+  console.log('click detection:', clickHook);
+}
+ipcMain.handle('last-click', () => ({ t: lastClick, alive: hookEvents > 0, mode: clickHook }));
+
 if (process.platform === 'linux') app.commandLine.appendSwitch('no-sandbox'); // AppImage/userns restrictions on newer distros
 const shotDir = path.join(app.getPath('userData'), 'screenshots');
 
@@ -22,6 +42,7 @@ function env() {
     sessionType: process.env.XDG_SESSION_TYPE || '(n/a)',
     desktop: process.env.XDG_CURRENT_DESKTOP || '(n/a)',
     wayland: isWayland,
+    clickDetection: clickHook,
     displays: screen.getAllDisplays().length,
     shotDir,
   };
@@ -99,6 +120,7 @@ ipcMain.handle('screenshot', async (_e, label) => {
 });
 
 app.whenReady().then(() => {
+  startClickHook();
   const win = new BrowserWindow({
     width: 1100, height: 820, minWidth: 760, backgroundColor: '#f4f2ed', autoHideMenuBar: true, title: 'Tech Exactly Time Tracker',
     icon: fs.existsSync(path.join(__dirname, 'build', 'icon.png')) ? path.join(__dirname, 'build', 'icon.png') : undefined,
@@ -106,4 +128,5 @@ app.whenReady().then(() => {
   });
   win.loadFile('index.html');
 });
+app.on('will-quit', () => { try { if (uio) uio.stop(); } catch (e) {} });
 app.on('window-all-closed', () => app.quit());

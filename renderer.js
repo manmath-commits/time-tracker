@@ -25,6 +25,7 @@
     activeWindow: async () => ({ ok: true, app: 'VS Code', title: 'renderer.js — time-tracker' }),
     screenshot: async () => ({ ok: true, method: 'preview', ms: 120, files: [{ kb: 312 }] }),
     openFolder: async () => '',
+    lastClick: async () => ({ t: window.__click || 0, alive: !!window.__alive, mode: 'preview' }),
   };
 
   // ---------- time helpers ----------
@@ -55,7 +56,7 @@
     return out;
   }
 
-  let run = 'stopped', cur = null, lastTick = Date.now(), lastShotAt = 0, win = null, lastWinKey = '';
+  let run = 'stopped', cur = null, lastTick = Date.now(), lastShotAt = 0, win = null, lastWinKey = '', idleSince = 0;
 
   const log = (m) => { const l = $('log'); l.textContent = `${new Date().toLocaleTimeString()}  ${m}\n${l.textContent}`.slice(0, 6000); };
   function toast(t) {
@@ -73,12 +74,12 @@
     $('dot').className = `dot ${cls}`; $('dot2').className = `dot ${cls}`;
     const sel = info(S.selected);
     $('statusText').textContent = !running ? 'Not tracking' : run === 'idle' ? 'Paused · idle' : `Tracking · ${sel.task.name}`;
-    $('stateText').textContent = !running ? 'Ready' : run === 'idle' ? 'Paused · no input' : 'Tracking';
+    $('stateText').textContent = !running ? 'Ready' : run === 'idle' ? 'Paused · click to resume' : 'Tracking';
     $('stateText').style.color = run === 'idle' ? 'var(--amber)' : 'var(--ink)';
     $('timer').classList.toggle('paused', run === 'idle');
     $('sub').innerHTML = !running
       ? (cur && trackedMs(cur) > 0 ? `Last session ${dur(trackedMs(cur) / 60000)} on <b>${esc(info(cur.taskId).task.name)}</b>.` : 'Select a task below, then press Start.')
-      : run === 'idle' ? 'No activity detected. The timer is paused until you come back.'
+      : run === 'idle' ? 'No activity detected. Click or press any key to resume.'
       : `Recording time on <b>${esc(sel.task.name)}</b> <span class="muted">· ${esc(sel.project.name)}</span>`;
     $('pickHint').textContent = running ? 'Stop the timer to switch task' : 'Assigned to you by your admin';
     renderTimer(); renderPicker();
@@ -165,8 +166,8 @@
   document.addEventListener('mouseout', (e) => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('[data-t]')) document.querySelectorAll('.tl__tip').forEach((n) => n.remove()); });
 
   function renderChecks(ir) {
-    const isIdle = ir.s >= RULES.idleSec;
-    $('idleOut').innerHTML = `<span class="pill"><i class="dot ${isIdle ? 'idle' : 'tracking'}"></i>${isIdle ? 'Idle' : 'Active'}</span> <span class="muted small mono">· ${ir.s}s</span><br><span class="muted small">${esc(ir.src || '')}</span>`;
+    const isIdle = ir.s >= RULES.idleSec || run === 'idle';
+    $('idleOut').innerHTML = `<span class="pill"><i class="dot ${isIdle ? 'idle' : 'tracking'}"></i>${isIdle ? 'Idle' : 'Active'}</span> <span class="muted small mono">· ${ir.s}s</span><br><span class="muted small">${run === 'idle' ? 'Waiting for a click or key press' : esc(ir.src || '')}</span>`;
     const next = run === 'tracking' ? Math.max(0, Math.ceil((lastShotAt + RULES.everySec * 1000 - Date.now()) / 1000)) : null;
     $('nextOut').textContent = next === null ? '–' : `${pad(Math.floor(next / 60))}:${pad(next % 60)}`;
   }
@@ -228,11 +229,15 @@
 
     const isIdle = ir.s >= RULES.idleSec;
     if (isIdle && run === 'tracking') {
-      run = 'idle'; cur.idle.push({ start: Math.max(cur.start, now - ir.s * 1000), end: now }); log(`idle (${ir.s}s) · timer paused`); renderRun(); renderTimeline();
-    } else if (isIdle && run === 'idle') {
-      cur.idle[cur.idle.length - 1].end = now;
-    } else if (!isIdle && run === 'idle') {
-      run = 'tracking'; log('activity · timer resumed'); renderRun(); renderTimeline();
+      idleSince = Math.max(cur.start, now - ir.s * 1000);
+      run = 'idle'; cur.idle.push({ start: idleSince, end: now }); log(`idle (${ir.s}s) · timer paused`); renderRun(); renderTimeline();
+    } else if (run === 'idle') {
+      // Moving the mouse is not enough: resume only after a click or key press since idle began.
+      // If click detection is unavailable (or has never reported anything), fall back to any input.
+      let resume = !isIdle;
+      if (resume) { const lc = await api.lastClick(); if (lc.alive && lc.t < idleSince) resume = false; }
+      if (resume) { run = 'tracking'; log('click / key press · timer resumed'); renderRun(); renderTimeline(); }
+      else cur.idle[cur.idle.length - 1].end = now;
     }
     cur.end = now;
     renderTimer();
