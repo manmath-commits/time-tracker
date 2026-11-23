@@ -134,17 +134,17 @@ $('startStop').onclick = () => {
 async function shot(){
   const r = await api.screenshot(cur().name);
   if (r.ok) {
-    $('shotOut').innerHTML = `<span class="badge ok">OK</span> ${r.files.length} screen(s), ${r.files.map(f=>f.kb+' KB').join(' + ')}<br><small>${new Date().toLocaleTimeString()}</small>`;
+    $('shotOut').innerHTML = `<span class="badge ok">OK</span> ${r.files.length} screen(s), ${r.files.map(f=>f.kb+' KB').join(' + ')} <small>(${r.method})</small><br><small>${new Date().toLocaleTimeString()}</small>`;
     log('screenshot OK ('+cur().name+')');
   } else { $('shotOut').innerHTML = `<span class="badge bad">FAILED</span> ${esc(r.error)}`; log('screenshot FAILED: '+r.error); }
 }
 
 // ---- 1-second tick: idle check, timer, screenshot schedule ----
 setInterval(async () => {
-  const s = await api.idle();
+  const ir = await api.idle(); const s = ir.s;
   const thr = Math.max(5, +$('thr').value || 60);
   const nowIdle = s >= thr;
-  $('idleOut').innerHTML = `<span class="badge ${nowIdle?'bad':'ok'}">${nowIdle?'IDLE':'ACTIVE'}</span> ${s}s since last input`;
+  $('idleOut').innerHTML = `<span class="badge ${nowIdle?'bad':'ok'}">${nowIdle?'IDLE':'ACTIVE'}</span> ${s}s since last input <small>(${ir.src})</small>`;
   if (running) {
     if (nowIdle !== idle) { idle = nowIdle; log(idle ? 'idle – timer paused' : 'activity – timer resumed'); renderRun(); }
     if (!idle) {
