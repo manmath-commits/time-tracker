@@ -1,0 +1,74 @@
+{
+  "name": "time-tracker-test",
+  "version": "0.1.0",
+  "description": "Feasibility test: screenshot, idle detection, active window",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
+  },
+  "dependencies": {
+    "active-win": "8.2.1"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.techexactly.timetrackertest",
+    "productName": "Time Tracker Test",
+    "npmRebuild": false,
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/active-win/**"
+    ],
+    "artifactName": "TimeTracker-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "TimeTracker-Setup-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "identity": "-",
+      "category": "public.app-category.productivity",
+      "extendInfo": {
+        "NSScreenCaptureUsageDescription": "Needed to capture screenshots while tracking time."
+      }
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "maintainer": "Tech Exactly <noreply@example.com>"
+    },
+    "portable": {
+      "artifactName": "TimeTracker-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "productName": "Time Tracker Test",
+  "author": {
+    "name": "Tech Exactly",
+    "email": "noreply@example.com"
+  }
+}
