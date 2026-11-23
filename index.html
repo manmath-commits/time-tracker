@@ -1,172 +1,89 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Time Tracker – Test</title>
-<style>
-:root{--bg:#f5f6fa;--card:#fff;--text:#1d2330;--muted:#6b7385;--line:#e3e6ee;--green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb}
-*{box-sizing:border-box}
-body{margin:0;font:14px system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
-header{background:#fff;border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-header h1{font-size:17px;margin:0}
-.status{display:flex;align-items:center;gap:8px;font-weight:600}
-.dot{width:10px;height:10px;border-radius:50%;background:#9aa3b5}
-.dot.run{background:var(--green);box-shadow:0 0 0 4px #16a34a33;animation:p 1.4s infinite}
-.dot.idle{background:var(--amber)}
-@keyframes p{50%{box-shadow:0 0 0 8px #16a34a00}}
-main{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;padding:20px 24px;max-width:1100px;margin:auto}
-@media(max-width:820px){main{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
-.card h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
-label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
-select,input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--text)}
-select:disabled{background:#f0f1f5}
-.row{display:flex;gap:8px}.row>*{flex:1}.row .fit{flex:none}
-.timer{font:700 56px ui-monospace,Consolas,monospace;text-align:center;margin:18px 0 4px;letter-spacing:.02em}
-.sub{text-align:center;color:var(--muted);min-height:20px}
-.big{width:100%;padding:16px;border:0;border-radius:12px;font-size:18px;font-weight:700;color:#fff;cursor:pointer;margin-top:14px;background:var(--green)}
-.big.stop{background:var(--red)}
-.big:disabled{background:#b6bccb;cursor:not-allowed}
-.btn{padding:9px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font:inherit}
-.btn:hover{background:#f0f1f5}
-.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.proj{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}
-.proj:last-child{border:0}.proj b{font-variant-numeric:tabular-nums}
-.proj.active{color:var(--green);font-weight:600}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:#eef0f6;color:var(--muted)}
-.badge.ok{background:#dcfce7;color:#166534}.badge.bad{background:#fee2e2;color:#991b1b}
-pre{margin:6px 0 0;background:#f5f6fa;border-radius:8px;padding:10px;font:12px ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-all}
-#log{max-height:150px;overflow:auto}
-details summary{cursor:pointer;font-weight:600;padding:4px 0}
-.full{grid-column:1/-1}
-</style></head><body>
-<header>
-  <h1>⏱ Time Tracker <span class="badge">test build</span></h1>
-  <div class="status"><span class="dot" id="dot"></span><span id="statusText">Not tracking</span></div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; script-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tech Exactly Time Tracker</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <img src="logo.png" alt="Tech Exactly">
+  <div class="top__right">
+    <span class="eyebrow">Time Tracker</span>
+    <span class="pill"><i class="dot stopped" id="dot"></i><span id="statusText">Not tracking</span></span>
+  </div>
 </header>
 
-<main>
-  <section class="card">
-    <h2>Track time</h2>
-    <label for="project">Project</label>
-    <div class="row">
-      <select id="project"></select>
-      <button class="btn fit" id="addProj">+ New project</button>
-    </div>
-    <div class="timer" id="timer">00:00:00</div>
-    <div class="sub" id="sub">Select a project and press Start</div>
-    <button class="big" id="startStop">▶ Start</button>
-  </section>
+<main class="wrap">
+  <div class="grid2">
+    <div class="stack">
+      <section class="panel timer-card" aria-label="Timer">
+        <div class="state"><i class="dot stopped" id="dot2"></i><span class="eyebrow" id="stateText" style="color:var(--ink)">Ready</span></div>
+        <div class="timer" id="timer">00:00:00</div>
+        <p class="timer-sub" id="sub">Select a project below, then press Start.</p>
+        <button class="btn btn--red btn--block go" id="startStop">Start</button>
+      </section>
 
-  <section class="card">
-    <h2>Time by project</h2>
-    <div id="totals"></div>
-    <div style="margin-top:12px"><button class="btn" id="reset">Reset all totals</button></div>
-  </section>
+      <section class="panel">
+        <div class="panel__head"><h2 class="h2">Project</h2><span class="small muted" id="pickHint"></span></div>
+        <div id="picker" role="radiogroup" aria-label="Project"></div>
+        <div class="newrow" id="newRow" hidden>
+          <input class="input" id="newName" placeholder="Project name" maxlength="40">
+          <button class="btn" id="newAdd">Add</button>
+          <button class="btn btn--ghost" id="newCancel">Cancel</button>
+        </div>
+        <div class="panel__body" id="newWrap" style="padding-top:12px;padding-bottom:12px;border-top:1px solid var(--rule-2)"><button class="btn btn--sm" id="newBtn">+ New project</button></div>
+      </section>
 
-  <section class="card full">
-    <h2>Settings</h2>
-    <div class="row">
-      <div><label>Screenshot every (seconds)</label><input id="every" type="number" min="5" value="60"></div>
-      <div><label>Stop timer after idle for (seconds)</label><input id="thr" type="number" min="5" value="60"></div>
-      <div class="fit" style="align-self:flex-end"><button class="btn" id="open">📁 Open screenshots folder</button></div>
+      <section class="panel">
+        <div class="panel__head"><h2 class="h2">Today</h2><span class="small muted mono" id="todayTotal">0m</span></div>
+        <div class="panel__body" id="timeline"></div>
+      </section>
     </div>
-  </section>
 
-  <section class="card full">
-    <h2>Live checks</h2>
-    <div class="row">
-      <div><label>Last screenshot</label><div id="shotOut">–</div></div>
-      <div><label>Idle</label><div id="idleOut">–</div></div>
-      <div><label>Active window</label><div id="winOut">–</div></div>
-    </div>
-    <details style="margin-top:14px"><summary>Environment &amp; event log</summary>
-      <pre id="env">…</pre><pre id="log"></pre>
-    </details>
-  </section>
+    <aside class="stack">
+      <section class="panel">
+        <div class="panel__head"><h2 class="h2">Session checks</h2></div>
+        <dl class="kv">
+          <dt>Idle</dt><dd id="idleOut">–</dd>
+          <dt>Last capture</dt><dd id="shotOut">–</dd>
+          <dt>Next capture</dt><dd id="nextOut" class="mono">–</dd>
+          <dt>Window</dt><dd id="winOut">–</dd>
+        </dl>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head"><h2 class="h2">Settings</h2></div>
+        <div class="panel__body" style="padding-top:6px;padding-bottom:12px">
+          <label class="setrow"><span>Screenshot every<small>seconds</small></span><input class="input" id="every" type="number" min="5" step="5"></label>
+          <label class="setrow"><span>Pause after idle<small>seconds without input</small></span><input class="input" id="thr" type="number" min="5" step="5"></label>
+          <button class="btn btn--sm btn--block" id="open" style="margin-top:8px">Open screenshots folder</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head"><h2 class="h2">What is recorded</h2></div>
+        <div class="panel__body notes">
+          <span>Time on the selected project, with idle periods.</span>
+          <span>A screenshot of your screen at the interval above, while the timer runs.</span>
+          <span>The name of the active app and window.</span>
+          <span class="muted">Nothing is recorded while the timer is stopped. Data stays on this computer.</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <details>
+          <summary>Diagnostics</summary>
+          <pre id="env">…</pre>
+          <pre id="log"></pre>
+        </details>
+      </section>
+    </aside>
+  </div>
 </main>
-
-<script>
-const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const fmt = s => [Math.floor(s/3600), Math.floor(s%3600/60), s%60].map(n => String(n).padStart(2,'0')).join(':');
-const log = m => { $('log').textContent = new Date().toLocaleTimeString()+'  '+m+'\n'+$('log').textContent; };
-
-// ---- state (saved locally) ----
-let state = { projects: [{id:'p1',name:'General',seconds:0}], selected:'p1' };
-try { const s = JSON.parse(localStorage.getItem('tt-state')); if (s && s.projects && s.projects.length) state = s; } catch(e){}
-const save = () => { try { localStorage.setItem('tt-state', JSON.stringify(state)); } catch(e){} };
-const cur = () => state.projects.find(p => p.id === state.selected) || state.projects[0];
-
-let running = false, idle = false, sessionSecs = 0, lastShotAt = 0;
-
-function renderProjects(){
-  $('project').innerHTML = state.projects.map(p => `<option value="${p.id}" ${p.id===state.selected?'selected':''}>${esc(p.name)}</option>`).join('');
-  $('project').disabled = running;
-  $('addProj').disabled = running;
-  $('totals').innerHTML = state.projects.map(p =>
-    `<div class="proj ${running&&p.id===state.selected?'active':''}"><span>${esc(p.name)}</span><b>${fmt(p.seconds)}</b></div>`).join('');
-}
-function renderRun(){
-  const b = $('startStop');
-  b.textContent = running ? '■ Stop' : '▶ Start';
-  b.classList.toggle('stop', running);
-  $('dot').className = 'dot' + (running ? (idle ? ' idle' : ' run') : '');
-  $('statusText').textContent = !running ? 'Not tracking' : idle ? 'Paused – idle' : 'Tracking: '+cur().name;
-  $('timer').textContent = fmt(sessionSecs);
-  $('sub').textContent = !running ? (sessionSecs ? 'Stopped – '+fmt(sessionSecs)+' saved to '+cur().name : 'Select a project and press Start')
-    : idle ? 'No activity detected – timer paused until you come back' : 'Recording time for '+cur().name;
-  renderProjects();
-}
-
-$('project').onchange = e => { state.selected = e.target.value; sessionSecs = 0; save(); renderRun(); };
-$('addProj').onclick = () => {
-  const name = (prompt('Project name?') || '').trim(); if (!name) return;
-  const p = {id:'p'+Date.now(), name, seconds:0}; state.projects.push(p); state.selected = p.id; sessionSecs = 0; save(); renderRun();
-};
-$('reset').onclick = () => { if (running) return alert('Stop the timer first.'); if (confirm('Reset all project totals?')) { state.projects.forEach(p => p.seconds = 0); sessionSecs = 0; save(); renderRun(); } };
-$('open').onclick = () => api.openFolder();
-
-$('startStop').onclick = () => {
-  running = !running;
-  if (running) { sessionSecs = 0; idle = false; lastShotAt = 0; log('START – '+cur().name); }
-  else { log('STOP – '+cur().name+' +'+fmt(sessionSecs)); }
-  renderRun();
-};
-
-async function shot(){
-  const r = await api.screenshot(cur().name);
-  if (r.ok) {
-    $('shotOut').innerHTML = `<span class="badge ok">OK</span> ${r.files.length} screen(s), ${r.files.map(f=>f.kb+' KB').join(' + ')} <small>(${r.method})</small><br><small>${new Date().toLocaleTimeString()}</small>`;
-    log('screenshot OK ('+cur().name+')');
-  } else { $('shotOut').innerHTML = `<span class="badge bad">FAILED</span> ${esc(r.error)}`; log('screenshot FAILED: '+r.error); }
-}
-
-// ---- 1-second tick: idle check, timer, screenshot schedule ----
-setInterval(async () => {
-  const ir = await api.idle(); const s = ir.s;
-  const thr = Math.max(5, +$('thr').value || 60);
-  const nowIdle = s >= thr;
-  $('idleOut').innerHTML = `<span class="badge ${nowIdle?'bad':'ok'}">${nowIdle?'IDLE':'ACTIVE'}</span> ${s}s since last input <small>(${ir.src})</small>`;
-  if (running) {
-    if (nowIdle !== idle) { idle = nowIdle; log(idle ? 'idle – timer paused' : 'activity – timer resumed'); renderRun(); }
-    if (!idle) {
-      sessionSecs++; cur().seconds++;
-      $('timer').textContent = fmt(sessionSecs);
-      if (sessionSecs % 5 === 0) save();
-      renderProjects();
-    }
-    const every = Math.max(5, +$('every').value || 60);
-    if (!idle && (Date.now() - lastShotAt) / 1000 >= every) { lastShotAt = Date.now(); shot(); }
-  }
-}, 1000);
-
-let lastKey = '';
-setInterval(async () => {
-  const w = await api.activeWindow();
-  if (w.ok) {
-    $('winOut').innerHTML = `<span class="badge ok">OK</span> ${esc(w.app)}<br><small>${esc(w.title)}</small>`;
-    const k = w.app+'|'+w.title; if (k !== lastKey) { lastKey = k; log('window → '+w.app+' — '+w.title); }
-  } else { $('winOut').innerHTML = `<span class="badge bad">FAILED</span> ${esc(w.error)}`; }
-}, 2000);
-
-(async () => { $('env').textContent = JSON.stringify(await api.env(), null, 2); })();
-renderRun();
-</script></body></html>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="renderer.js"></script>
+</body>
+</html>

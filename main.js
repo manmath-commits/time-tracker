@@ -100,7 +100,8 @@ ipcMain.handle('screenshot', async (_e, label) => {
 
 app.whenReady().then(() => {
   const win = new BrowserWindow({
-    width: 980, height: 780, minWidth: 760,
+    width: 1100, height: 820, minWidth: 760, backgroundColor: '#f4f2ed', autoHideMenuBar: true, title: 'Tech Exactly Time Tracker',
+    icon: fs.existsSync(path.join(__dirname, 'build', 'icon.png')) ? path.join(__dirname, 'build', 'icon.png') : undefined,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true },
   });
   win.loadFile('index.html');
