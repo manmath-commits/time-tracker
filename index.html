@@ -22,23 +22,17 @@
       <section class="panel timer-card" aria-label="Timer">
         <div class="state"><i class="dot stopped" id="dot2"></i><span class="eyebrow" id="stateText" style="color:var(--ink)">Ready</span></div>
         <div class="timer" id="timer">00:00:00</div>
-        <p class="timer-sub" id="sub">Select a project below, then press Start.</p>
+        <p class="timer-sub" id="sub">Select a task below, then press Start.</p>
         <button class="btn btn--red btn--block go" id="startStop">Start</button>
       </section>
 
       <section class="panel">
-        <div class="panel__head"><h2 class="h2">Project</h2><span class="small muted" id="pickHint"></span></div>
-        <div id="picker" role="radiogroup" aria-label="Project"></div>
-        <div class="newrow" id="newRow" hidden>
-          <input class="input" id="newName" placeholder="Project name" maxlength="40">
-          <button class="btn" id="newAdd">Add</button>
-          <button class="btn btn--ghost" id="newCancel">Cancel</button>
-        </div>
-        <div class="panel__body" id="newWrap" style="padding-top:12px;padding-bottom:12px;border-top:1px solid var(--rule-2)"><button class="btn btn--sm" id="newBtn">+ New project</button></div>
+        <div class="panel__head"><h2 class="h2">My tasks</h2><span class="small muted" id="pickHint">Assigned to you by your admin</span></div>
+        <div id="picker" role="radiogroup" aria-label="Task"></div>
       </section>
 
       <section class="panel">
-        <div class="panel__head"><h2 class="h2">Today</h2><span class="small muted mono" id="todayTotal">0m</span></div>
+        <div class="panel__head"><h2 class="h2">Timeline · Today</h2><span class="small muted mono" id="todayTotal">0m</span></div>
         <div class="panel__body" id="timeline"></div>
       </section>
     </div>
@@ -52,24 +46,17 @@
           <dt>Next capture</dt><dd id="nextOut" class="mono">–</dd>
           <dt>Window</dt><dd id="winOut">–</dd>
         </dl>
-      </section>
-
-      <section class="panel">
-        <div class="panel__head"><h2 class="h2">Settings</h2></div>
-        <div class="panel__body" style="padding-top:6px;padding-bottom:12px">
-          <label class="setrow"><span>Screenshot every<small>seconds</small></span><input class="input" id="every" type="number" min="5" step="5"></label>
-          <label class="setrow"><span>Pause after idle<small>seconds without input</small></span><input class="input" id="thr" type="number" min="5" step="5"></label>
-          <button class="btn btn--sm btn--block" id="open" style="margin-top:8px">Open screenshots folder</button>
-        </div>
+        <div class="panel__body" style="border-top:1px solid var(--rule-2);padding:12px 18px"><button class="btn btn--sm btn--block" id="open">Open screenshots folder</button></div>
       </section>
 
       <section class="panel">
         <div class="panel__head"><h2 class="h2">What is recorded</h2></div>
         <div class="panel__body notes">
-          <span>Time on the selected project, with idle periods.</span>
-          <span>A screenshot of your screen at the interval above, while the timer runs.</span>
+          <span>Time on the selected task, with idle periods.</span>
+          <span id="everyText">A screenshot of your screen while the timer runs.</span>
+          <span id="idleText">Time pauses when you stop using the computer.</span>
           <span>The name of the active app and window.</span>
-          <span class="muted">Nothing is recorded while the timer is stopped. Data stays on this computer.</span>
+          <span class="muted">Nothing is recorded while the timer is stopped. These rules are set by your admin.</span>
         </div>
       </section>
 
