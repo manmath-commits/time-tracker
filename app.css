@@ -129,7 +129,12 @@ details pre { margin: 0 18px 14px; padding: 10px; background: var(--wash); borde
 
 @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } .wrap { padding: 18px 14px 60px; } .top { padding: 12px 14px; } }
 
-.grp { padding: 12px 18px 8px; background: var(--wash); border-top: 1px solid var(--rule); }
+.grp { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 18px; background: var(--wash); border: 0; border-top: 1px solid var(--rule); text-align: left; }
+.grp:hover { background: var(--rule-2); }
+.grp .small:not(.grp__t) { flex: 1; }
+.grp__t { margin-left: auto; color: var(--ink-2); }
+.chev { width: 7px; height: 7px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); transition: transform .15s; flex: none; margin: 0 4px 0 2px; }
+.chev.open { transform: rotate(45deg); }
 .grp:first-child { border-top: 0; }
 .grp .eyebrow { display: inline-flex; align-items: center; color: var(--ink-2); }
 .stats { grid-template-columns: repeat(2, 1fr); }

@@ -93,12 +93,23 @@
   function renderPicker() {
     const running = run !== 'stopped';
     const mins = (id) => today().filter((s) => s.taskId === id).reduce((a, s) => a + trackedMs(s) / 60000, 0);
-    $('picker').innerHTML = ASSIGNED.map((p) => `
-      <div class="grp"><span class="eyebrow"><i class="swatch" style="background:${p.color}"></i>${esc(p.name)}</span></div>
-      ${p.tasks.map((t) => `
+    const collapsed = S.collapsed || [];
+    $('picker').innerHTML = ASSIGNED.map((p) => {
+      const open = !collapsed.includes(p.id);
+      const total = p.tasks.reduce((a, t) => a + mins(t.id), 0);
+      const hasSel = p.tasks.some((t) => t.id === S.selected);
+      return `
+      <button class="grp" data-grp="${p.id}" aria-expanded="${open}">
+        <span class="chev${open ? ' open' : ''}" aria-hidden="true"></span>
+        <span class="eyebrow"><i class="swatch" style="background:${p.color}"></i>${esc(p.name)}</span>
+        <span class="small muted">${p.tasks.length} tasks${hasSel && !open ? ' · selected inside' : ''}</span>
+        <span class="mono small grp__t">${dur(total)}</span>
+      </button>
+      ${open ? p.tasks.map((t) => `
         <button class="pick${t.id === S.selected ? ' on' : ''}" role="radio" aria-checked="${t.id === S.selected}" data-id="${t.id}" ${running && t.id !== S.selected ? 'disabled' : ''}>
           <span class="radio"></span><b>${esc(t.name)}</b><span class="mono small">${dur(mins(t.id))} today</span>
-        </button>`).join('')}`).join('');
+        </button>`).join('') : ''}`;
+    }).join('');
   }
 
   // timeline: green = tracked, blank = not tracked
@@ -192,6 +203,13 @@
 
   $('startStop').onclick = () => (run === 'stopped' ? start() : stop());
   $('picker').addEventListener('click', (e) => {
+    const g = e.target.closest('.grp');
+    if (g) { // expand or collapse a project's tasks
+      S.collapsed = S.collapsed || [];
+      const i = S.collapsed.indexOf(g.dataset.grp);
+      if (i >= 0) S.collapsed.splice(i, 1); else S.collapsed.push(g.dataset.grp);
+      save(); renderPicker(); return;
+    }
     const b = e.target.closest('.pick'); if (!b || run !== 'stopped') return;
     S.selected = b.dataset.id; cur = null; save(); renderRun();
   });
